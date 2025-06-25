@@ -21,7 +21,7 @@ await cloudinaryConnect()
 // allow multiple origins
 const allowedOrigins = ['http://localhost:5173']
 
-app.post('/webhook', express.raw({ type: 'application/json' }), stripeWebhooks);
+app.post('/stripe', express.raw({ type: 'application/json' }), stripeWebhooks);
 
 // middleware
 app.use(express.json())
