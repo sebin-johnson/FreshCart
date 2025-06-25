@@ -116,7 +116,7 @@ export const stripeWebhooks = async (req, res) => {
 
     try {
         event = stripeInstance.webhooks.constructEvent(
-            req.rawBody, 
+            req.rawBody,
             sig,
             process.env.STRIPE_WEBHOOK_SECRET
         );
@@ -127,37 +127,18 @@ export const stripeWebhooks = async (req, res) => {
 
     try {
         switch (event.type) {
-            case 'payment_intent.succeeded': {
-                const paymentIntent = event.data.object;
-                const sessionList = await stripeInstance.checkout.sessions.list({
-                    payment_intent: paymentIntent.id
-                });
-
-                const session = sessionList.data[0];
+            case 'checkout.session.completed': {
+                const session = event.data.object;
                 const { orderId, userId } = session.metadata;
 
                 await Order.findByIdAndUpdate(orderId, { isPaid: true });
-                await User.findByIdAndUpdate(userId, { cartItems: {} }); 
-                console.log("Order marked paid:", orderId);
-                break;
-            }
-
-            case 'payment_intent.payment_failed': {
-                const paymentIntent = event.data.object;
-                const sessionList = await stripeInstance.checkout.sessions.list({
-                    payment_intent: paymentIntent.id
-                });
-
-                const session = sessionList.data[0];
-                const { orderId } = session.metadata;
-
-                await Order.findByIdAndDelete(orderId);
-                console.log("Order deleted due to payment failure:", orderId);
+                await User.findByIdAndUpdate(userId, { cartItems: {} });
+                console.log("Order marked as paid via checkout:", orderId);
                 break;
             }
 
             default:
-                console.log(`Unhandled event type ${event.type}`);
+                console.log(`Unhandled event type: ${event.type}`);
         }
 
         res.status(200).json({ received: true });
@@ -166,6 +147,7 @@ export const stripeWebhooks = async (req, res) => {
         res.status(500).send("Webhook handler failed");
     }
 };
+
 
 // get user orders
 export const getUserOrders = async (req, res) => {
