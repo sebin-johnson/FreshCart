@@ -130,21 +130,19 @@ export const stripeWebhooks = async (req, res) => {
     }
 
     try {
-        if (event.type === 'checkout.session.completed') {
-            const session = event.data.object;
-            const { orderId, userId } = session.metadata;
+        switch (event.type) {
+            case 'checkout.session.completed': {
+                const session = event.data.object;
+                const { orderId, userId } = session.metadata;
 
-            // ✅ Make sure the order exists and update it
-            const order = await Order.findById(orderId);
-
-            if (order) {
-                order.isPaid = true;
-                await order.save();
-                console.log("Order marked as paid via Stripe:", orderId);
-            } else {
-                console.warn("Order ID from metadata not found:", orderId);
-                // OPTIONAL fallback: create order here from session
+                await Order.findByIdAndUpdate(orderId, { isPaid: true });
+                await User.findByIdAndUpdate(userId, { cartItems: {} });
+                console.log("Order marked as paid via checkout:", orderId);
+                break;
             }
+
+            default:
+                console.log(`Unhandled event type: ${event.type}`);
         }
 
         res.status(200).json({ received: true });
@@ -166,8 +164,8 @@ export const getUserOrders = async (req, res) => {
         const orders = await Order.find({
             userId,
             $or: [
-                { paymentType: 'COD' },         // Show all COD orders
-                { paymentType: 'Online', isPaid: true } // Show online orders only if paid
+                { paymentType: 'COD' }, 
+                { paymentType: 'Online', isPaid: true } 
             ]
         })
             .populate("items.product")
