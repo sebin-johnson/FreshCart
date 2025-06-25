@@ -112,12 +112,12 @@ export const placeOrderOnline = async (req, res) => {
 };
 
 // stripe webhooks
+const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
+// Stripe Webhook: triggered after successful payment
 export const stripeWebhooks = async (req, res) => {
-    const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
     const sig = req.headers['stripe-signature'];
 
     let event;
-
     try {
         event = stripeInstance.webhooks.constructEvent(
             req.body,
@@ -130,27 +130,25 @@ export const stripeWebhooks = async (req, res) => {
     }
 
     try {
-        switch (event.type) {
-            case 'checkout.session.completed': {
-                const session = event.data.object;
-                const { orderId, userId } = session.metadata;
+        if (event.type === 'checkout.session.completed') {
+            const session = event.data.object;
+            const { orderId, userId } = session.metadata;
 
-                await Order.findByIdAndUpdate(orderId, { isPaid: true });
-                await User.findByIdAndUpdate(userId, { cartItems: {} });
-                console.log("Order marked as paid via checkout:", orderId);
-                break;
-            }
+            await Order.findByIdAndUpdate(orderId, { isPaid: true });
+            await User.findByIdAndUpdate(userId, { cartItems: {} });
 
-            default:
-                console.log(`Unhandled event type: ${event.type}`);
+            console.log("✅ Order marked as paid via Stripe:", orderId);
+        } else {
+            console.log(`Unhandled event type: ${event.type}`);
         }
 
         res.status(200).json({ received: true });
     } catch (err) {
-        console.error("Webhook handler error:", err);
+        console.error("❌ Webhook handler error:", err);
         res.status(500).send("Webhook handler failed");
     }
 };
+
 
 // get user orders
 export const getUserOrders = async (req, res) => {
@@ -164,8 +162,8 @@ export const getUserOrders = async (req, res) => {
         const orders = await Order.find({
             userId,
             $or: [
-                { paymentType: 'COD' }, 
-                { paymentType: 'Online', isPaid: true } 
+                { paymentType: 'COD' },
+                { paymentType: 'Online', isPaid: true }
             ]
         })
             .populate("items.product")
