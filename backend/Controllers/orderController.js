@@ -75,7 +75,7 @@ export const placeOrderOnline = async (req, res) => {
             paymentType: 'Online',
         });
 
-        const stripeInstance = new stripe(process.env.STRIPE_SERCRET_KEY);
+        const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
 
         const line_items = productData.map(item => ({
             price_data: {
@@ -116,7 +116,7 @@ export const stripeWebhooks = async (req, res) => {
 
     try {
         event = stripeInstance.webhooks.constructEvent(
-            req.rawBody,
+            req.body,
             sig,
             process.env.STRIPE_WEBHOOK_SECRET
         );
