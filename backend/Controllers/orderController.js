@@ -73,6 +73,7 @@ export const placeOrderOnline = async (req, res) => {
             amount,
             address,
             paymentType: 'Online',
+            isPaid: false, 
         });
 
         const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
@@ -83,7 +84,7 @@ export const placeOrderOnline = async (req, res) => {
                 product_data: {
                     name: item.name
                 },
-                unit_amount: Math.floor(item.price * 1.02 * 100), // add 2% charge + convert to cents
+                unit_amount: Math.floor(item.price * 1.02 * 100),
             },
             quantity: item.quantity
         }));
@@ -98,6 +99,9 @@ export const placeOrderOnline = async (req, res) => {
                 userId
             }
         });
+
+        console.log("New Order ID:", newOrderOnline._id);
+        console.log("Stripe session metadata:", session.metadata);
 
         return res.status(201).json({ url: session.url, order: newOrderOnline });
 
