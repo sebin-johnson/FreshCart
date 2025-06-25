@@ -73,7 +73,7 @@ export const placeOrderOnline = async (req, res) => {
             amount,
             address,
             paymentType: 'Online',
-            isPaid: false, 
+            isPaid: false,
         });
 
         const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
@@ -130,19 +130,21 @@ export const stripeWebhooks = async (req, res) => {
     }
 
     try {
-        switch (event.type) {
-            case 'checkout.session.completed': {
-                const session = event.data.object;
-                const { orderId, userId } = session.metadata;
+        if (event.type === 'checkout.session.completed') {
+            const session = event.data.object;
+            const { orderId, userId } = session.metadata;
 
-                await Order.findByIdAndUpdate(orderId, { isPaid: true });
-                await User.findByIdAndUpdate(userId, { cartItems: {} });
-                console.log("Order marked as paid via checkout:", orderId);
-                break;
+            // ✅ Make sure the order exists and update it
+            const order = await Order.findById(orderId);
+
+            if (order) {
+                order.isPaid = true;
+                await order.save();
+                console.log("Order marked as paid via Stripe:", orderId);
+            } else {
+                console.warn("Order ID from metadata not found:", orderId);
+                // OPTIONAL fallback: create order here from session
             }
-
-            default:
-                console.log(`Unhandled event type: ${event.type}`);
         }
 
         res.status(200).json({ received: true });
@@ -151,7 +153,6 @@ export const stripeWebhooks = async (req, res) => {
         res.status(500).send("Webhook handler failed");
     }
 };
-
 
 // get user orders
 export const getUserOrders = async (req, res) => {
@@ -165,8 +166,8 @@ export const getUserOrders = async (req, res) => {
         const orders = await Order.find({
             userId,
             $or: [
-                { paymentType: 'COD' },
-                { isPaid: false } // Optional: adjust based on your schema
+                { paymentType: 'COD' },         // Show all COD orders
+                { paymentType: 'Online', isPaid: true } // Show online orders only if paid
             ]
         })
             .populate("items.product")
