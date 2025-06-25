@@ -28,7 +28,7 @@ const ProductCard = ({ product }) => {
                         </div>
 
                         <div className="flex justify-between items-center mt-4">
-                            <span className="text-lg font-bold text-green-600">₹{product.offerPrice}{" "} <span className="text-gray-500/60 md:text-sm text-xs line-through">₹{product.price}</span></span>
+                            <span className="text-lg font-bold text-green-600">${product.offerPrice}{" "} <span className="text-gray-500/60 md:text-sm text-xs line-through">${product.price}</span></span>
                             <div className="text-green-500" onClick={(e) => { e.stopPropagation() }}>
                                 {!cartItems[product._id] ? (
                                     <button className="flex items-center justify-center gap-1 bg-green-100/10 border border-green-300/40 md:w-[80px] w-[64px] h-[34px] rounded text-green-600 font-medium cursor-pointer"

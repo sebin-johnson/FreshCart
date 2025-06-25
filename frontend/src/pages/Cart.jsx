@@ -164,7 +164,7 @@ const Cart = () => {
 
                                 {/* Unit Price */}
                                 <div className="col-span-1 text-center md:text-left text-gray-900 font-semibold">
-                                    ₹{product.offerPrice}
+                                    ${product.offerPrice}
                                 </div>
 
                                 {/* Quantity Controls */}
@@ -190,7 +190,7 @@ const Cart = () => {
 
                                 {/* Total & Remove */}
                                 <div className="col-span-1 text-center md:text-left text-gray-900 font-semibold">
-                                    ₹{((product.offerPrice + (product.extraPrice || 0)) * cartItems[product._id]).toFixed(2)}
+                                    ${((product.offerPrice + (product.extraPrice || 0)) * cartItems[product._id]).toFixed(2)}
                                 </div>
                                 <button
                                     onClick={() => removeFromCart(product._id)}
@@ -286,7 +286,7 @@ const Cart = () => {
                             <div className="space-y-3">
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Subtotal ({getCartCount()} items)</span>
-                                    <span className="font-medium text-gray-900">₹{getCartAmount().toFixed(2)}</span>
+                                    <span className="font-medium text-gray-900">${getCartAmount().toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Shipping</span>
@@ -299,7 +299,7 @@ const Cart = () => {
                             </div>
                             <div className="pt-3 border-t border-gray-200 flex justify-between text-lg font-bold text-gray-900">
                                 <span>Total</span>
-                                <span>₹{(getCartAmount()).toFixed(2)}</span>
+                                <span>${(getCartAmount()).toFixed(2)}</span>
                             </div>
                             <button className="w-full py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors shadow-md hover:shadow-lg cursor-pointer" onClick={placeOrder}>
                                 {paymentOption === 'COD' ? 'Place Order' : 'Proceed to Checkout'}
