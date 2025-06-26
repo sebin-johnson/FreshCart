@@ -10,7 +10,7 @@ const AddProduct = () => {
     const [category, setCategory] = useState('')
     const [price, setPrice] = useState('')
     const [offerPrice, setOfferPrice] = useState('')
-    const { axios } = useAppContext()
+    const { axios, fetchProducts } = useAppContext()
 
     const onSubmitHandler = async (e) => {
         e.preventDefault();
@@ -44,6 +44,7 @@ const AddProduct = () => {
                 setOfferPrice('');
                 setFiles([]);
             }
+            fetchProducts()
         } catch (error) {
             const errorMessage = error.response?.data?.message || error.message;
             toast.error(errorMessage);
